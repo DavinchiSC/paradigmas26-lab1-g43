@@ -2,18 +2,13 @@ object Main {
   def main(args: Array[String]): Unit = {
     val header = s"Reddit Post Parser\n${"=" * 40}"
 
-    val subscriptions: List[String] = FileIO.readSubscriptions()
+    val subscriptions: List[Types.Subscription] = FileIO.readSubscriptions("./subscriptions.json")
+    println(subscriptions)
 
-    val allPosts: List[(String, String)] = subscriptions.map { url =>
-      println(s"Fetching posts from: $url")
-      val posts = FileIO.downloadFeed(url)
-      (url, posts)
-    }
+    val allPosts: List[Types.Post] = FileIO.postListFromSubList(subscriptions)
 
-    val output = allPosts
-      .map { case (url, posts) => Formatters.formatSubscription(url, posts) }
-      .mkString("\n")
-
-    println(output)
+    allPosts.foreach { case (subreddit, title, selftext, date) =>
+      println(s"[$date] ($subreddit) $title")
+      if (selftext.nonEmpty) println(s"  $selftext")}
   }
 }
