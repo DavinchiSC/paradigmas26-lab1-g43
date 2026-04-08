@@ -51,13 +51,18 @@ object FileIO {
         val selftext  = (data \ "selftext").extract[String]
         val createdUtc = (data \ "created_utc").extract[Double].toLong
         val date      = Formatters.formatDateFromUTC(createdUtc)
+        val score = (data \ "score").extract[Int]
 
-        (subredditName, title, selftext, date) // Types.Post
+        (subredditName, title, selftext, date, score) // Types.Post
       }
     }.toOption
   }
   def postListFromSubList(subs: List[Types.Subscription]): List[Types.Post] = {
    // getOrElse(Nil) dice: "Si es Some(lista), dame la lista. Si es None, dame una lista vacía (Nil)"
    subs.flatMap(sub => postListFromSub(sub).getOrElse(Nil))
+  }
+
+  def totalScore(posts: List[Types.Post]): Int = {
+    posts.foldLeft(0)((acc, post) => acc + post._5)
   }
 }

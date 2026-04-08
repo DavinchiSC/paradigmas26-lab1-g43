@@ -35,8 +35,26 @@ object Main {
         }
       
         // Aquí podrías imprimir una muestra como hacías antes
-        filteredPosts.take(5).foreach { case (sub, title, _, _) =>
+        filteredPosts.take(5).foreach { case (sub, title, _, _, _) =>
           println(s"[$sub] $title")
+        }
+
+        // imprimimos el score total de cada subscription
+        subscriptions.foreach { sub =>
+          FileIO.postListFromSub(sub) match {
+            case Some(posts) =>
+              val scores    = FileIO.totalScore(posts)
+              val wordList  = TextProcessing.wordFrequencies(posts)
+              val firstPosts = posts.take(5)
+
+              println(s"Subscription: ${sub._1}")
+              println(s"Total de scores: $scores")
+              println(s"Palabras mas frecuentes: $wordList")
+              println(s"Posts: $firstPosts")
+
+            case None =>
+              println(s"No se pudieron cargar posts de: ${sub._1}")
+          }
         }
 
       case None =>
