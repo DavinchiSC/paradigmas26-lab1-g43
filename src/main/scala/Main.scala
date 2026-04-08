@@ -22,6 +22,18 @@ object Main {
         println(s"Total de posts descargados: ${allPosts.length}")
         println(s"Posts válidos tras filtrar: ${filteredPosts.length}")
 
+              // 5. Frecuencias de palabras por subreddit
+        val freqsBySubreddit = TextProcessing.wordFrequenciesBySubreddit(filteredPosts)
+
+        freqsBySubreddit.foreach { case (subreddit, freqs) =>
+          println(s"\n${"=" * 60}")
+          println(s"Top palabras en r/$subreddit")
+          println("=" * 60)
+          freqs.take(10).foreach { case (word, count) =>
+            println(f"  $word%-30s $count")
+          }
+        }
+      
         // Aquí podrías imprimir una muestra como hacías antes
         filteredPosts.take(5).foreach { case (sub, title, _, _) =>
           println(s"[$sub] $title")
