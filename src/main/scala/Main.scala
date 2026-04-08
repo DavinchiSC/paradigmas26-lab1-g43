@@ -6,6 +6,7 @@ object Main {
     println(subscriptions)
 
     val allPosts: List[Types.Post] = FileIO.postListFromSubList(subscriptions)
+    val filteredPosts = allPosts.filter(post => post._2.trim.nonEmpty && post._3.trim.nonEmpty)
 
     allPosts.foreach { case (subreddit, title, selftext, date) =>
       println(s"[$date] ($subreddit) $title")
