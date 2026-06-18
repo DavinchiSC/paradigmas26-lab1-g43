@@ -2,47 +2,46 @@ object Main {
   def main(args: Array[String]): Unit = {
     val header = s"Reddit Post Parser\n${"=" * 40}"
     println(header)
+
     FileIO.readSubscriptions() match {
-      
+
       case Some(subscriptions) =>
         println(s"Suscripciones cargadas: $subscriptions")
 
         val allPosts = FileIO.postListFromSubList(subscriptions)
-        
-        val filteredPosts = allPosts.filter(p => 
+
+        val filteredPosts = allPosts.filter(p =>
           p._2.trim.nonEmpty && p._3.trim.nonEmpty
         )
 
         println(s"Total de posts descargados: ${allPosts.length}")
         println(s"Posts válidos tras filtrar: ${filteredPosts.length}")
-        it
-        val freqsBySubreddit = TextProcessing.wordFrequenciesBySubreddit(filteredPosts)
 
-        freqsBySubreddit.foreach { case (subreddit, freqs) =>
+        // Pre-calculamos todo una sola vez, sin volver a pegarle a la red
+        val postsBySubreddit  = filteredPosts.groupBy(_._1)
+        val freqsBySubreddit  = TextProcessing.wordFrequenciesBySubreddit(filteredPosts)
+
+        subscriptions.foreach { case (name, url) =>
+          val postsForSub  = postsBySubreddit.getOrElse(name, Nil)
+          val totalScore   = FileIO.totalScore(postsForSub)
+          val topWords     = freqsBySubreddit.getOrElse(name, Nil).take(10)
+          val samplePosts  = postsForSub.take(5)
+
           println(s"\n${"=" * 60}")
-          println(s"Top palabras en r/$subreddit")
+          println(s"Subscription: $name")
+          println(s"URL: $url")
           println("=" * 60)
-          freqs.take(10).foreach { case (word, count) =>
+
+          println(s"Total de scores: $totalScore")
+
+          println("Palabras más frecuentes:")
+          topWords.foreach { case (word, count) =>
             println(f"  $word%-30s $count")
           }
-        }
 
-        subscriptions.foreach { sub =>
-          FileIO.postListFromSub(sub) match {
-            case Some(posts) =>
-              val scores    = FileIO.totalScore(posts)
-              val wordList  = TextProcessing.wordFrequencies(posts)
-              val firstPosts = posts.take(5)
-
-              println(s"Subscription: ${sub._1}")
-              println(s"Total de scores: $scores")
-              println(s"Palabras mas frecuentes: $wordList")
-              println("Posts de muestra:")
-              firstPosts.foreach { case (subreddit, title, selftext, date, score) =>
-                println(s"  -> [$date] $title url:${sub._2}")
-              }
-            case None =>
-              println(s"No se pudieron cargar posts de: ${sub._1}")
+          println("Posts de muestra (5 primeros):")
+          samplePosts.foreach { case (_, title, _, date, _) =>
+            println(s"  -> [$date] $title  url:$url")
           }
         }
 
@@ -52,3 +51,4 @@ object Main {
     }
   }
 }
+
